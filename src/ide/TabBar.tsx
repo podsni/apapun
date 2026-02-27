@@ -10,6 +10,18 @@ interface TabBarProps {
   onPreviewModeChange: (mode: 'split' | 'editor' | 'preview') => void;
 }
 
+const MODE_ICONS: Record<'editor' | 'split' | 'preview', string> = {
+  editor: '✎',
+  split: '⊞',
+  preview: '▶',
+};
+
+const MODE_LABELS: Record<'editor' | 'split' | 'preview', string> = {
+  editor: '⬜ Editor',
+  split: '⬛ Split',
+  preview: '⬜ Preview',
+};
+
 export default function TabBar({
   files,
   activeFileId,
@@ -24,7 +36,6 @@ export default function TabBar({
   const tabBg = isDark ? '#1e1e2e' : '#f0f0f8';
   const activeTabBg = isDark ? '#282c34' : '#ffffff';
   const border = isDark ? '#313244' : '#d0d0e0';
-  const text = isDark ? '#cdd6f4' : '#333355';
   const mutedText = isDark ? '#6c7086' : '#888899';
   const activeText = isDark ? '#cdd6f4' : '#2d2d3a';
 
@@ -34,8 +45,8 @@ export default function TabBar({
       style={{
         background: bg,
         borderBottom: `1px solid ${border}`,
-        height: '36px',
-        minHeight: '36px',
+        height: '40px',
+        minHeight: '40px',
       }}
     >
       {/* Tabs */}
@@ -53,20 +64,16 @@ export default function TabBar({
                 color: isActive ? activeText : mutedText,
                 borderRight: `1px solid ${border}`,
                 borderTop: isActive ? '2px solid #667eea' : '2px solid transparent',
-                minWidth: '80px',
+                minWidth: 'clamp(60px, 10vw, 80px)',
                 maxWidth: '160px',
               }}
               onClick={() => onSelectFile(file.id)}
             >
               <span className="flex-shrink-0 text-xs">{icon}</span>
-              <span className="min-w-0 flex-1 truncate">
-                {file.name}
-              </span>
-              {file.isModified && (
-                <span className="flex-shrink-0 text-yellow-400">●</span>
-              )}
+              <span className="min-w-0 flex-1 truncate">{file.name}</span>
+              {file.isModified && <span className="flex-shrink-0 text-yellow-400">●</span>}
               <button
-                className="flex-shrink-0 opacity-0 group-hover:opacity-60 hover:!opacity-100"
+                className="flex-shrink-0 opacity-60 hover:!opacity-100 md:opacity-0 md:group-hover:opacity-60"
                 style={{ color: '#f38ba8', lineHeight: 1 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -88,8 +95,6 @@ export default function TabBar({
       >
         {(['editor', 'split', 'preview'] as const).map((mode) => {
           const isActive = previewMode === mode;
-          const label =
-            mode === 'editor' ? '⬜ Editor' : mode === 'split' ? '⬛ Split' : '⬜ Preview';
           return (
             <button
               key={mode}
@@ -100,8 +105,10 @@ export default function TabBar({
                 fontWeight: isActive ? 600 : 400,
               }}
               onClick={() => onPreviewModeChange(mode)}
+              title={mode.charAt(0).toUpperCase() + mode.slice(1)}
             >
-              {label}
+              <span className="md:hidden">{MODE_ICONS[mode]}</span>
+              <span className="hidden md:inline">{MODE_LABELS[mode]}</span>
             </button>
           );
         })}

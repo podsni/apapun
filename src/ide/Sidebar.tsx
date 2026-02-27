@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { FILE_ICONS, type FileTab, getLanguageFromFilename } from './types.ts';
+import { FILE_ICONS, type FileTab } from './types.ts';
 
 interface SidebarProps {
   files: Array<FileTab>;
@@ -13,6 +13,8 @@ interface SidebarProps {
   onUploadFile: (name: string, content: string) => void;
   onThemeToggle: () => void;
   onFontSizeChange: (size: number) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export default function Sidebar({
@@ -27,6 +29,8 @@ export default function Sidebar({
   onUploadFile,
   onThemeToggle,
   onFontSizeChange,
+  isOpen,
+  onClose,
 }: SidebarProps) {
   const [isAddingFile, setIsAddingFile] = useState(false);
   const [newFileName, setNewFileName] = useState('');
@@ -41,6 +45,8 @@ export default function Sidebar({
   const subtext = isDark ? '#6c7086' : '#888899';
   const activeBg = isDark ? '#313244' : '#dde1f5';
   const hoverBg = isDark ? '#292942' : '#e8eaf6';
+
+  const isMobileMode = isOpen !== undefined;
 
   const handleAddFile = () => {
     if (newFileName.trim()) {
@@ -72,7 +78,14 @@ export default function Sidebar({
     e.target.value = '';
   };
 
-  return (
+  const handleSelectFile = (id: string) => {
+    onSelectFile(id);
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  const sidebar = (
     <aside
       className="flex h-full flex-col"
       style={{
@@ -81,6 +94,17 @@ export default function Sidebar({
         background: bg,
         borderRight: `1px solid ${border}`,
         color: text,
+        ...(isMobileMode
+          ? {
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              height: '100%',
+              zIndex: 50,
+              transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
+              transition: 'transform 0.25s ease-in-out',
+            }
+          : {}),
       }}
     >
       {/* Logo / Brand */}
@@ -94,21 +118,31 @@ export default function Sidebar({
         >
           {'</>'}
         </div>
-        <span className="text-sm font-semibold" style={{ color: text }}>
+        <span className="flex-1 text-sm font-semibold" style={{ color: text }}>
           NexCode IDE
         </span>
+        {onClose && (
+          <button
+            title="Close sidebar"
+            onClick={onClose}
+            className="flex items-center justify-center rounded text-lg leading-none transition-colors hover:opacity-70"
+            style={{
+              color: subtext,
+              width: '44px',
+              height: '44px',
+              flexShrink: 0,
+            }}
+          >
+            ×
+          </button>
+        )}
       </div>
 
       {/* Files section */}
       <div className="flex-1 overflow-y-auto">
         {/* Section header */}
-        <div
-          className="flex items-center justify-between px-3 py-2"
-          style={{ color: subtext }}
-        >
-          <span className="text-xs font-semibold uppercase tracking-widest">
-            Files
-          </span>
+        <div className="flex items-center justify-between px-3 py-2" style={{ color: subtext }}>
+          <span className="text-xs font-semibold tracking-widest uppercase">Files</span>
           <div className="flex gap-1">
             <button
               title="Upload file"
@@ -202,12 +236,12 @@ export default function Sidebar({
                   </div>
                 ) : (
                   <div
-                    className="group flex cursor-pointer items-center justify-between px-3 py-1.5 text-sm"
+                    className="group flex min-h-[44px] cursor-pointer items-center justify-between px-3 py-3 text-sm"
                     style={{
                       background: isActive ? activeBg : 'transparent',
                       color: isActive ? '#89b4fa' : text,
                     }}
-                    onClick={() => onSelectFile(file.id)}
+                    onClick={() => handleSelectFile(file.id)}
                     onMouseEnter={(e) => {
                       if (!isActive) e.currentTarget.style.background = hoverBg;
                     }}
@@ -219,9 +253,7 @@ export default function Sidebar({
                       <span className="flex-shrink-0 text-xs">{icon}</span>
                       <span className="truncate text-xs">
                         {file.name}
-                        {file.isModified && (
-                          <span className="ml-1 text-yellow-400">●</span>
-                        )}
+                        {file.isModified && <span className="ml-1 text-yellow-400">●</span>}
                       </span>
                     </div>
                     <div
@@ -230,7 +262,7 @@ export default function Sidebar({
                     >
                       <button
                         title="Rename"
-                        className="flex h-4 w-4 items-center justify-center rounded text-xs opacity-60 hover:opacity-100"
+                        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-xs opacity-60 hover:opacity-100"
                         style={{ color: subtext }}
                         onClick={() => {
                           setRenamingId(file.id);
@@ -242,7 +274,7 @@ export default function Sidebar({
                       {files.length > 1 && (
                         <button
                           title="Delete"
-                          className="flex h-4 w-4 items-center justify-center rounded text-xs opacity-60 hover:opacity-100"
+                          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-xs opacity-60 hover:opacity-100"
                           style={{ color: '#f38ba8' }}
                           onClick={() => onRemoveFile(file.id)}
                         >
@@ -259,10 +291,7 @@ export default function Sidebar({
       </div>
 
       {/* Bottom settings */}
-      <div
-        className="space-y-2 p-3"
-        style={{ borderTop: `1px solid ${border}` }}
-      >
+      <div className="space-y-2 p-3" style={{ borderTop: `1px solid ${border}` }}>
         {/* Font size */}
         <div className="flex items-center justify-between">
           <span className="text-xs" style={{ color: subtext }}>
@@ -303,4 +332,22 @@ export default function Sidebar({
       </div>
     </aside>
   );
+
+  if (isMobileMode) {
+    return (
+      <>
+        {/* Backdrop overlay */}
+        {isOpen && (
+          <div
+            className="fixed inset-0 z-40"
+            style={{ background: 'rgba(0, 0, 0, 0.5)' }}
+            onClick={onClose}
+          />
+        )}
+        {sidebar}
+      </>
+    );
+  }
+
+  return sidebar;
 }

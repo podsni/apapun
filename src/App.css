@@ -4,6 +4,10 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 html,
 body,
 #root {
@@ -12,6 +16,7 @@ body,
   height: 100%;
   width: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 /* Custom scrollbar for dark theme */
@@ -44,4 +49,52 @@ body,
 
 .cm-scroller {
   overflow: auto !important;
+}
+
+/* Mobile improvements */
+button {
+  touch-action: manipulation;
+}
+
+/* Smooth iOS scrolling on scrollable containers */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile sidebar overlay */
+.mobile-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+}
+
+/* Mobile sidebar drawer */
+.sidebar-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  z-index: 50;
+  transform: translateX(0);
+  transition: transform 0.2s ease;
+}
+
+.sidebar-drawer.closed {
+  transform: translateX(-100%);
+}
+
+/* Smaller scrollbars on mobile */
+@media (max-width: 767px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+/* Hide scrollbars on touch devices — native scrolling handles it */
+@media (hover: none) and (pointer: coarse) {
+  ::-webkit-scrollbar {
+    width: 0;
+  }
 }
