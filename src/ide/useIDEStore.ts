@@ -1,10 +1,6 @@
 import { useCallback, useState } from 'react';
 import { DEFAULT_FILES } from './defaultFiles.ts';
-import {
-  type FileLanguage,
-  type FileTab,
-  getLanguageFromFilename,
-} from './types.ts';
+import { type FileLanguage, type FileTab, getLanguageFromFilename } from './types.ts';
 
 let _nextId = 1000;
 function nextId() {
@@ -21,9 +17,7 @@ export function useIDEStore() {
   const activeFile = files.find((f) => f.id === activeFileId) ?? null;
 
   const updateFileContent = useCallback((id: string, content: string) => {
-    setFiles((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, content, isModified: true } : f)),
-    );
+    setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, content, isModified: true } : f)));
   }, []);
 
   const addFile = useCallback((name: string) => {
@@ -54,39 +48,38 @@ export function useIDEStore() {
 
   const renameFile = useCallback((id: string, newName: string) => {
     const language = getLanguageFromFilename(newName);
-    setFiles((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, name: newName, language } : f)),
-    );
+    setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, name: newName, language } : f)));
   }, []);
 
   const saveFile = useCallback((id: string) => {
-    setFiles((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, isModified: false } : f)),
-    );
+    setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, isModified: false } : f)));
   }, []);
 
-  const uploadFile = useCallback((name: string, content: string) => {
-    const language = getLanguageFromFilename(name);
-    const existing = files.find((f) => f.name === name);
-    if (existing) {
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.id === existing.id ? { ...f, content, language, isModified: false } : f,
-        ),
-      );
-      setActiveFileId(existing.id);
-    } else {
-      const newFile: FileTab = {
-        id: nextId(),
-        name,
-        content,
-        language,
-        isModified: false,
-      };
-      setFiles((prev) => [...prev, newFile]);
-      setActiveFileId(newFile.id);
-    }
-  }, [files]);
+  const uploadFile = useCallback(
+    (name: string, content: string) => {
+      const language = getLanguageFromFilename(name);
+      const existing = files.find((f) => f.name === name);
+      if (existing) {
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === existing.id ? { ...f, content, language, isModified: false } : f,
+          ),
+        );
+        setActiveFileId(existing.id);
+      } else {
+        const newFile: FileTab = {
+          id: nextId(),
+          name,
+          content,
+          language,
+          isModified: false,
+        };
+        setFiles((prev) => [...prev, newFile]);
+        setActiveFileId(newFile.id);
+      }
+    },
+    [files],
+  );
 
   return {
     files,

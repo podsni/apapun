@@ -17,14 +17,8 @@ function buildHTMLPreview(files: Array<FileTab>): string {
 
     // Inject CSS files that are linked
     for (const cssFile of cssFiles) {
-      const linkRegex = new RegExp(
-        `<link[^>]+href=["']${cssFile.name}["'][^>]*>`,
-        'gi',
-      );
-      html = html.replace(
-        linkRegex,
-        `<style>\n${cssFile.content}\n</style>`,
-      );
+      const linkRegex = new RegExp(`<link[^>]+href=["']${cssFile.name}["'][^>]*>`, 'gi');
+      html = html.replace(linkRegex, `<style>\n${cssFile.content}\n</style>`);
     }
 
     // Inject JS files that are referenced
@@ -33,10 +27,7 @@ function buildHTMLPreview(files: Array<FileTab>): string {
         `<script[^>]+src=["']${jsFile.name}["'][^>]*><\\/script>`,
         'gi',
       );
-      html = html.replace(
-        scriptRegex,
-        `<script>\n${jsFile.content}\n</script>`,
-      );
+      html = html.replace(scriptRegex, `<script>\n${jsFile.content}\n</script>`);
     }
 
     return html;
