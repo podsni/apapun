@@ -98,3 +98,53 @@ button {
     width: 0;
   }
 }
+
+/* Pulsing live indicator */
+@keyframes pulse-live {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+.live-dot {
+  animation: pulse-live 2s ease-in-out infinite;
+}
+
+/* Hide scrollbar utility for tabs container */
+.tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+.tabs-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Smooth transitions for theme switching */
+.theme-transition * {
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+/* Better focus styles */
+button:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+input:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 0;
+}
+
+/* Safe area insets for mobile notch/home bar */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

@@ -36,6 +36,7 @@ export default function Sidebar({
   const [newFileName, setNewFileName] = useState('');
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const [closeHovered, setCloseHovered] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isDark = theme === 'dark';
@@ -85,12 +86,19 @@ export default function Sidebar({
     }
   };
 
+  const getFileExtension = (name: string) => {
+    const parts = name.split('.');
+    return parts.length > 1 ? parts[parts.length - 1] : null;
+  };
+
+  const sidebarWidth = isMobileMode ? '280px' : '220px';
+
   const sidebar = (
     <aside
       className="flex h-full flex-col"
       style={{
-        width: '220px',
-        minWidth: '220px',
+        width: sidebarWidth,
+        minWidth: sidebarWidth,
         background: bg,
         borderRight: `1px solid ${border}`,
         color: text,
@@ -110,7 +118,12 @@ export default function Sidebar({
       {/* Logo / Brand */}
       <div
         className="flex items-center gap-2 px-4 py-3"
-        style={{ borderBottom: `1px solid ${border}` }}
+        style={{
+          borderBottom: `1px solid ${border}`,
+          background: isDark
+            ? 'linear-gradient(180deg, #252538 0%, #1e1e2e 100%)'
+            : 'linear-gradient(180deg, #eaeaf8 0%, #f0f0f5 100%)',
+        }}
       >
         <div
           className="flex h-7 w-7 items-center justify-center rounded-lg text-sm font-bold"
@@ -125,12 +138,16 @@ export default function Sidebar({
           <button
             title="Close sidebar"
             onClick={onClose}
-            className="flex items-center justify-center rounded text-lg leading-none transition-colors hover:opacity-70"
+            onMouseEnter={() => setCloseHovered(true)}
+            onMouseLeave={() => setCloseHovered(false)}
+            className="flex items-center justify-center text-lg leading-none transition-colors"
             style={{
               color: subtext,
-              width: '44px',
-              height: '44px',
+              width: '32px',
+              height: '32px',
               flexShrink: 0,
+              borderRadius: '8px',
+              background: closeHovered ? (isDark ? '#313244' : '#e0e0f0') : 'transparent',
             }}
           >
             ×
@@ -208,6 +225,7 @@ export default function Sidebar({
             const isActive = file.id === activeFileId;
             const lang = file.language;
             const icon = FILE_ICONS[lang] ?? '📄';
+            const ext = getFileExtension(file.name);
 
             return (
               <li key={file.id}>
@@ -236,10 +254,13 @@ export default function Sidebar({
                   </div>
                 ) : (
                   <div
-                    className="group flex min-h-[44px] cursor-pointer items-center justify-between px-3 py-3 text-sm"
+                    className="group flex min-h-[44px] cursor-pointer items-center justify-between py-3 text-sm"
                     style={{
+                      paddingLeft: isActive ? '9px' : '12px',
+                      paddingRight: '12px',
                       background: isActive ? activeBg : 'transparent',
                       color: isActive ? '#89b4fa' : text,
+                      borderLeft: isActive ? '3px solid #667eea' : '3px solid transparent',
                     }}
                     onClick={() => handleSelectFile(file.id)}
                     onMouseEnter={(e) => {
@@ -249,15 +270,39 @@ export default function Sidebar({
                       if (!isActive) e.currentTarget.style.background = 'transparent';
                     }}
                   >
-                    <div className="flex min-w-0 items-center gap-2">
-                      <span className="flex-shrink-0 text-xs">{icon}</span>
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <span className="flex-shrink-0" style={{ fontSize: '14px' }}>
+                        {icon}
+                      </span>
                       <span className="truncate text-xs">
                         {file.name}
-                        {file.isModified && <span className="ml-1 text-yellow-400">●</span>}
+                        {file.isModified && (
+                          <span
+                            className="live-dot ml-1 text-yellow-400"
+                            style={{ display: 'inline-block' }}
+                          >
+                            ●
+                          </span>
+                        )}
                       </span>
                     </div>
+                    {/* Extension chip — visible when not hovered */}
+                    {ext && (
+                      <span
+                        className="flex-shrink-0 rounded px-1 text-xs group-hover:hidden"
+                        style={{
+                          background: isDark ? '#313244' : '#dde1f5',
+                          color: subtext,
+                          fontSize: '9px',
+                          lineHeight: '16px',
+                          letterSpacing: '0.02em',
+                        }}
+                      >
+                        {ext}
+                      </span>
+                    )}
                     <div
-                      className="flex flex-shrink-0 gap-1 opacity-0 group-hover:opacity-100"
+                      className="hidden flex-shrink-0 gap-1 group-hover:flex"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button
@@ -292,6 +337,20 @@ export default function Sidebar({
 
       {/* Bottom settings */}
       <div className="space-y-2 p-3" style={{ borderTop: `1px solid ${border}` }}>
+        {/* Settings label */}
+        <span
+          style={{
+            fontSize: '10px',
+            color: subtext,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            fontWeight: 600,
+            display: 'block',
+          }}
+        >
+          Settings
+        </span>
+
         {/* Font size */}
         <div className="flex items-center justify-between">
           <span className="text-xs" style={{ color: subtext }}>
@@ -300,18 +359,30 @@ export default function Sidebar({
           <div className="flex items-center gap-1">
             <button
               onClick={() => onFontSizeChange(Math.max(10, fontSize - 1))}
-              className="flex h-5 w-5 items-center justify-center rounded text-xs"
-              style={{ background: isDark ? '#313244' : '#e0e0f0', color: text }}
+              className="flex items-center justify-center text-sm font-medium"
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '6px',
+                background: isDark ? '#313244' : '#e0e0f0',
+                color: text,
+              }}
             >
-              -
+              −
             </button>
             <span className="w-6 text-center text-xs" style={{ color: text }}>
               {fontSize}
             </span>
             <button
               onClick={() => onFontSizeChange(Math.min(24, fontSize + 1))}
-              className="flex h-5 w-5 items-center justify-center rounded text-xs"
-              style={{ background: isDark ? '#313244' : '#e0e0f0', color: text }}
+              className="flex items-center justify-center text-sm font-medium"
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '6px',
+                background: isDark ? '#313244' : '#e0e0f0',
+                color: text,
+              }}
             >
               +
             </button>
@@ -325,9 +396,18 @@ export default function Sidebar({
           style={{
             background: isDark ? '#313244' : '#dde1f5',
             color: text,
+            transition: 'background 0.15s ease, opacity 0.15s ease',
           }}
         >
-          {isDark ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          <span
+            style={{
+              display: 'inline-block',
+              transition: 'transform 0.3s ease',
+            }}
+          >
+            {isDark ? '☀️' : '🌙'}
+          </span>
+          {isDark ? ' Light Mode' : ' Dark Mode'}
         </button>
       </div>
     </aside>
